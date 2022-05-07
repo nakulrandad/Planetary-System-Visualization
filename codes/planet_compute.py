@@ -113,12 +113,14 @@ class Planets:
         for i in range(len(self.planets)):
             self.update_curr_pos(i)
 
-    def update_and_fetch_pos(self, units='AU'):
-        self.update()
+    def update_and_fetch_pos(self, units='AU', update=True):
+        if self.update:
+            self.update()
         if units=='AU':
             conv_factor = 1/Constants.AU_DIST
         curr_pos = self.planets_curr_pos*conv_factor
         return {self.planets[i].name : curr_pos[i] for i in range(len(self.planets))}
+        
 
 
 if __name__=='__main__':

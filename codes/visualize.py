@@ -11,11 +11,33 @@ Author: Nakul Randad (https://github.com/nakulrandad)
 import numpy as np
 from matplotlib import pyplot as plt
 
-from traits.api import Any, Array, HasTraits, Range, Float, observe, Instance, Button
-from traitsui.api import View, Item, Group, UndoButton, RevertButton
+from traits.api import Any, Array, HasTraits, Range, Float, observe, Instance, Button, HasStrictTraits, Str, Int, List
+from traitsui.api import View, Item, Group, UndoButton, RevertButton, TableEditor, ObjectColumn, ExpressionColumn
 
 from mayavi.core.api import PipelineBase
 from mayavi.core.ui.api import MayaviScene, SceneEditor, MlabSceneModel
+
+from planets_data import PlanetData
+
+# from traits.api import HasTraits, HasStrictTraits, Str, Int, Regex, List
+
+# from traitsui.api import (
+#     View,
+#     Group,
+#     Item,
+#     TableEditor,
+#     ObjectColumn,
+#     ExpressionColumn,
+#     EvalTableFilter,
+# )
+# from traitsui.table_filter import (
+#     EvalFilterTemplate,
+#     MenuFilterTemplate,
+#     RuleFilterTemplate,
+# )
+
+PLANET_NAMES = [planet for planet in PlanetData.__dict__
+                if not planet.startswith('_')]
 
 
 def curve(n_mer, n_long, n_s):
@@ -38,6 +60,21 @@ class PlanetarySystemModel(HasTraits):
     plot = Instance(PipelineBase)
 
     toggle_bg = Button('Dark Mode')
+
+    employees = List(Employee)
+
+    # traits_view = View(
+    #     Group(
+    #         Item('employees', show_label=False, editor=table_editor),
+    #         show_border=True,
+    #     ),
+    #     title='Department Personnel',
+    #     width=0.4,
+    #     height=0.4,
+    #     resizable=True,
+    #     buttons=['OK'],
+    #     kind='live',
+    # )
 
     def __init__(self):
         super().__init__()
@@ -69,10 +106,94 @@ class PlanetarySystemModel(HasTraits):
             Group(
                 '_', 'n_meridional', 'n_longitudinal', 'n_size', 'toggle_bg',
                 show_border=True, label='Curve Parameters'),
+            Group(
+                Item('employees', show_label=False, editor=table_editor),
+                show_border=True),
             orientation='vertical'),
         resizable=True, buttons=[UndoButton, RevertButton],
+        kind='live',
         title='Project: Planetary Visualization')
 
 
-planet_system_model = PlanetarySystemModel()
+planet_system_model = PlanetarySystemModel(employees=employees)
 planet_system_model.configure_traits()
+
+
+# A helper class for the 'Department' class below:
+class Employee(HasTraits):
+    first_name = Str()
+    last_name = Str()
+    age = Int()
+
+    traits_view = View(
+        'first_name',
+        'last_name',
+        'age',
+        title='Create new employee',
+        width=0.18,
+        buttons=['OK', 'Cancel'],
+    )
+
+
+# For readability, the TableEditor of the demo is defined here, rather than in
+# the View:
+table_editor = TableEditor(
+    columns=[
+        ObjectColumn(name='first_name', width=0.20),
+        ObjectColumn(name='last_name', width=0.20),
+        ExpressionColumn(
+            label='Full Name',
+            width=0.30,
+            expression="'%s %s' % (object.first_name, " "object.last_name )",
+        ),
+        ObjectColumn(name='age', width=0.10, horizontal_alignment='center'),
+    ],
+    deletable=True,
+    sort_model=True,
+    auto_size=False,
+    orientation='vertical',
+    edit_view=View(
+        Group('first_name', 'last_name', 'age', show_border=True),
+        resizable=True,
+    ),
+    show_toolbar=True,
+    row_factory=Employee,
+)
+
+
+# The class to be edited with the TableEditor:
+# class Department(HasStrictTraits):
+
+#     employees = List(Employee)
+
+#     traits_view = View(
+#         Group(
+#             Item('employees', show_label=False, editor=table_editor),
+#             show_border=True,
+#         ),
+#         title='Department Personnel',
+#         width=0.4,
+#         height=0.4,
+#         resizable=True,
+#         buttons=['OK'],
+#         kind='live',
+#     )
+
+
+# Create some employees:
+employees = [
+    Employee(first_name='Jason', last_name='Smith', age=32),
+    Employee(first_name='Mike', last_name='Tollan', age=34),
+    Employee(
+        first_name='Dave', last_name='Richards', age=42
+    ),
+    Employee(first_name='Lyn', last_name='Spitz', age=40),
+    Employee(first_name='Greg', last_name='Andrews', age=45),
+]
+
+# Create the demo:
+# demo = Department(employees=employees)
+
+# # Run the demo (if invoked from the command line):
+# if __name__ == '__main__':
+#     demo.configure_traits()

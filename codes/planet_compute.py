@@ -124,14 +124,25 @@ class Planets:
 
 
 if __name__=='__main__':
-    pl = Planet('earth', 6*(10**24), init_theta=5)
-    pl2 = Planet('merc', 6*(10**23), orb_incl=5, orb_ecc=0.2, intr_pl_ang=45, maj_ang_pp=10, init_theta=5)
-    plts = Planets()
-    plts.add_planet(pl)
-    print(plts.planets_curr_pos)
-    plts.add_planet(pl2)
-    print(plts.planets_curr_pos)
-    print(plts.dth_max, plts.dth_min, plts.P)
+    pl_map = {
+        'mercury': PlanetData.MERCURY_DATA,
+        'venus': PlanetData.VENUS_DATA,
+        'earth': PlanetData.EARTH_DATA,
+        'mars': PlanetData.MARS_DATA,
+        'jupiter': PlanetData.JUPITER_DATA,
+        'saturn': PlanetData.SATURN_DATA,
+        'uranus': PlanetData.URANUS_DATA,
+        'neptune': PlanetData.NEPTUNE_DATA
+    }
+    #pl = Planet('earth', 6*(10**24), init_theta=5)
+    #pl2 = Planet('merc', 6*(10**23), orb_incl=5, orb_ecc=0.2, intr_pl_ang=45, maj_ang_pp=10, init_theta=5)
+    plts = Planets(dt = 100*Constants.DAY_TO_SEC)
+    for name in pl_map:
+        pl_data = pl_map[name]
+        plts.add_planet(Planet(name, pl_data['Mass'], sem_maj_ax=pl_data['Semi Major Axis'], 
+                               orb_incl=pl_data['Orbit Inclination'], orb_ecc=pl_data['Orbit Eccentricity'], 
+                               intr_pl_ang=pl_data['Angle-Intr_pl'], maj_ang_pp=pl_data['Angle-maj_ax_pp'], 
+                               init_theta=pl_data['Initial Theta']))
     plts.update()
     print(plts.planets_curr_pos)
 

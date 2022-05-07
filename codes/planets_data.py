@@ -1,11 +1,13 @@
 import numpy as np
 
+
 class Constants:
     G = 6.67*(10**-11)
     AU_DIST = 1.496*(10**11)
     DEG_TO_RAD = np.pi/180
     DAY_TO_SEC = 3600*24
     MASS_SUN = 1.99*(10**30)
+
 
 class PlanetData:
     MERCURY_DATA = {

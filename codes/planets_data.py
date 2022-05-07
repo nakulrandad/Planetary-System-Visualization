@@ -9,7 +9,7 @@ class Constants:
 
 class PlanetData:
     MERCURY_DATA = {
-        'Mass' : 10,
+        'Mass' : 3.3*(10**23),
         'Semi Major Axis' : 0.387,
         'Orbit Inclination' : 7,
         'Orbit Eccentricity' : 0.2,
@@ -18,7 +18,7 @@ class PlanetData:
         'Initial Theta' : 0
     }
     VENUS_DATA = {
-        'Mass' : 10,
+        'Mass' : 4.87*(10**24),
         'Semi Major Axis' : 0.723,
         'Orbit Inclination' : 3.39,
         'Orbit Eccentricity' : 0.007,
@@ -27,7 +27,7 @@ class PlanetData:
         'Initial Theta' : 0
     }
     EARTH_DATA = {
-        'Mass' : 10,
+        'Mass' : 5.97*(10**24),
         'Semi Major Axis' : 1,
         'Orbit Inclination' : 0,
         'Orbit Eccentricity' : 0.017,
@@ -36,7 +36,7 @@ class PlanetData:
         'Initial Theta' : 0
     }
     MARS_DATA = {
-        'Mass' : 10,
+        'Mass' : 6.42*(10**23),
         'Semi Major Axis' : 1.527,
         'Orbit Inclination' : 1.85,
         'Orbit Eccentricity' : 0.093,
@@ -45,7 +45,7 @@ class PlanetData:
         'Initial Theta' : 0
     }
     JUPITER_DATA = {
-        'Mass' : 10,
+        'Mass' : 1.9*(10**27),
         'Semi Major Axis' : 5.2,
         'Orbit Inclination' : 1.31,
         'Orbit Eccentricity' : 0.048,
@@ -54,7 +54,7 @@ class PlanetData:
         'Initial Theta' : 0
     }
     SATURN_DATA = {
-        'Mass' : 10,
+        'Mass' : 5.68*(10**26),
         'Semi Major Axis' : 9.54,
         'Orbit Inclination' : 2.49,
         'Orbit Eccentricity' : 0.056,
@@ -63,7 +63,7 @@ class PlanetData:
         'Initial Theta' : 0
     }
     URANUS_DATA = {
-        'Mass' : 10,
+        'Mass' : 8.68*(10**25),
         'Semi Major Axis' : 19.19,
         'Orbit Inclination' : 0.77,
         'Orbit Eccentricity' : 0.046,
@@ -72,7 +72,7 @@ class PlanetData:
         'Initial Theta' : 0
     }
     NEPTUNE_DATA = {
-        'Mass' : 10,
+        'Mass' : 1.02*(10**26),
         'Semi Major Axis' : 30.06,
         'Orbit Inclination' : 1.77,
         'Orbit Eccentricity' : 0.01,

@@ -8,13 +8,7 @@ Description: Consists of planet class and planet data.
 # ============================================================================
 
 import numpy as np
-
-class Constants:
-    G = 6.67*(10**-11)
-    AU_DIST = 1.496*(10**11)
-    DEG_TO_RAD = np.pi/180
-    DAY_TO_SEC = 3600*24
-    MASS_SUN = 1.99*(10**30)
+from planets_data import Constants, PlanetData
 
 def get_rotation_matrix(theta, axis='z'):
     if axis == 'x':
@@ -61,9 +55,10 @@ class Planet:
 
 
 class Planets:
-    def __init__(self, dt=10*Constants.DAY_TO_SEC):
+    def __init__(self, dt=10*Constants.DAY_TO_SEC, cent_mass=Constants.MASS_SUN):
         self.planets = []
         self.dt = dt
+        self.center_mass = cent_mass
         self.planets_theta = np.array([])
         self.planets_sem_maj = np.array([])
         self.planets_ecc = np.array([])
@@ -100,7 +95,7 @@ class Planets:
                 self.planets_aphs = np.concatenate([self.planets_aphs, np.array([planet.aph])])
                 self.planets_curr_pos = np.concatenate([self.planets_curr_pos, self.calc_curr_pos_vector(-1)])
 
-            self.P = (2*np.pi/((Constants.G*Constants.MASS_SUN)**0.5))*(self.planets_sem_maj**1.5)
+            self.P = (2*np.pi/((Constants.G*self.center_mass)**0.5))*(self.planets_sem_maj**1.5)
             ar_vel = (np.pi*self.dt/2)*((1-self.planets_ecc**2)**0.5)*(1/self.P)
             self.dth_min = ar_vel*(1/(1-self.planets_ecc)**2)
             self.dth_max = ar_vel*(1/(1+self.planets_ecc)**2)
@@ -118,10 +113,14 @@ class Planets:
         for i in range(len(self.planets)):
             self.update_curr_pos(i)
 
+    def update_and_fetch_pos(self):
+        self.update()
+        return {self.planets[i].name : self.planets_curr_pos[i] for i in range(len(self.planets))}
+
 
 if __name__=='__main__':
     pl = Planet('earth', 6*(10**24), init_theta=5)
-    pl2 = Planet('merc', 6*(10**23), orb_incl=5, intr_pl_ang=45, maj_ang_pp=10, init_theta=5)
+    pl2 = Planet('merc', 6*(10**23), orb_incl=5, orb_ecc=0.2, intr_pl_ang=45, maj_ang_pp=10, init_theta=5)
     plts = Planets()
     plts.add_planet(pl)
     print(plts.planets_curr_pos)

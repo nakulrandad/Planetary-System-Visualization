@@ -147,8 +147,8 @@ class Planets:
 
     def update_theta(self):
         self.dtheta = (self.dth_min + ((self.dth_max-self.dth_min)/np.pi)
-                       * np.abs(np.pi-self.planets_theta))
-        print('dtheta', self.dtheta)
+                       * np.abs(np.pi-(self.planets_theta % (2*np.pi))))
+        # print('dtheta', self.dtheta)
         self.planets_theta = self.planets_theta + self.dtheta
 
     def update(self):
@@ -156,18 +156,16 @@ class Planets:
         for i in range(len(self.planets)):
             self.update_curr_pos(i)
 
-
     def update_and_fetch_pos(self, units='AU', update=True):
         if self.update:
             self.update()
-        if units=='AU':
+        if units == 'AU':
             conv_factor = 1/Constants.AU_DIST
         curr_pos = self.planets_curr_pos*conv_factor
-        return {self.planets[i].name : curr_pos[i] for i in range(len(self.planets))}
-        
+        return {self.planets[i].name: curr_pos[i] for i in range(len(self.planets))}
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     pl_map = {
         'mercury': PlanetData.MERCURY_DATA,
         'venus': PlanetData.VENUS_DATA,
@@ -180,12 +178,17 @@ if __name__=='__main__':
     }
     #pl = Planet('earth', 6*(10**24), init_theta=5)
     #pl2 = Planet('merc', 6*(10**23), orb_incl=5, orb_ecc=0.2, intr_pl_ang=45, maj_ang_pp=10, init_theta=5)
-    plts = Planets(dt = 100*Constants.DAY_TO_SEC)
+    plts = Planets(dt=100*Constants.DAY_TO_SEC)
     for name in pl_map:
         pl_data = pl_map[name]
-        plts.add_planet(Planet(name, pl_data['Mass'], sem_maj_ax=pl_data['Semi Major Axis'], 
-                               orb_incl=pl_data['Orbit Inclination'], orb_ecc=pl_data['Orbit Eccentricity'], 
-                               intr_pl_ang=pl_data['Angle-Intr_pl'], maj_ang_pp=pl_data['Angle-maj_ax_pp'], 
-                               init_theta=pl_data['Initial Theta']))
+        plts.add_planet(
+            Planet(
+                name, pl_data['Mass'],
+                sem_maj_ax=pl_data['Semi Major Axis'],
+                orb_incl=pl_data['Orbit Inclination'],
+                orb_ecc=pl_data['Orbit Eccentricity'],
+                intr_pl_ang=pl_data['Angle-Intr_pl'],
+                maj_ang_pp=pl_data['Angle-maj_ax_pp'],
+                init_theta=pl_data['Initial Theta']))
     plts.update()
     print(plts.planets_curr_pos)

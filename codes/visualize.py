@@ -53,66 +53,70 @@ for i in range(25000):
     curr_data = plts.update_and_fetch_pos()
     for name in pl_map:
         orbit_data[name].append(curr_data[name])
-inst_id = 0
 
 
 class Planet_ui(HasTraits):
     name = Str()
     semi_major_axis = Float()
+    orbit_inc = Float()
+    orbit_ecc = Float()
 
     traits_view = View(
         'name',
         'semi_major_axis',
+        'orbit_inc',
+        'orbit_ecc',
         title='Create new planet',
         width=0.18,
         buttons=['OK', 'Cancel'],
     )
 
 
-# For readability, the TableEditor of the demo is defined here, rather than in
-# the View:
 table_editor = TableEditor(
-    columns=[
-        ObjectColumn(name='name', width=0.20),
-        # ExpressionColumn(
-        #     label='Full Name',
-        #     width=0.30,
-        #     expression="'%s %s' % (object.first_name, " "object.last_name )"),
-
-        ObjectColumn(name='semi_major_axis', width=0.10,
-                     horizontal_alignment='center', label='Semi Major Axis (AU)'),
-    ],
-    deletable=True,
-    sort_model=True,
-    auto_size=True,
+    columns=[ObjectColumn(
+        name='name', width=0.20),
+        ObjectColumn(
+        name='semi_major_axis', width=0.10,
+        horizontal_alignment='center',
+        label='Semi Major Axis (AU)'),
+        ObjectColumn(
+        name='orbit_inc', width=0.10,
+        horizontal_alignment='center',
+        label='Orbit Inclination'),
+        ObjectColumn(
+        name='orbit_ecc', width=0.10,
+        horizontal_alignment='center',
+        label='Orbit Eccentricity'), ],
+    deletable=True, sort_model=False, auto_size=False,
     orientation='vertical',
     edit_view=View(
-        Group('name', 'semi_major_axis', show_border=True),
-        resizable=True,
-    ),
-    show_toolbar=True,
-    row_factory=Planet_ui,
-)
+        Group(
+            'name', 'semi_major_axis', 'orbit_inc',
+            'orbit_ecc', show_border=True),
+        resizable=True,),
+    show_toolbar=True, row_factory=Planet_ui,)
 
 
 # Create some Planets:
 planets_list = [
     Planet_ui(
         name=name.capitalize(),
-        semi_major_axis=pl_map[name]['Semi Major Axis'])
+        semi_major_axis=pl_map[name]['Semi Major Axis'],
+        orbit_inc=pl_map[name]['Orbit Inclination'],
+        orbit_ecc=pl_map[name]['Orbit Eccentricity'])
     for name in pl_map]
 
 
 class PlanetarySystemModel(HasTraits):
     potential_threshold = Range(1, 1000, 100)
-    n_longitudinal = Range(0, 30, 12)
-    n_size = Range(1, 5, 3)
+    speed = Range(1, 50, 10)
 
     scene = Instance(MlabSceneModel, ())
     plot = Instance(PipelineBase)
 
     play = Button('Play')
     toggle_bg = Button('Dark Mode')
+    toggle_potential = Button('Potential')
     reset = Button()
 
     planets = List(Planet_ui)
@@ -122,9 +126,9 @@ class PlanetarySystemModel(HasTraits):
         self.planet_plt = []
         self.sun_plot = self.scene.mlab.points3d(
             0, 0, 0, color=(1, 1, 0), resolution=100, scale_factor=0.4)
-        global inst_id
+        curr_data = plts.update_and_fetch_pos()
         for name in pl_map:
-            curr_pose = orbit_data[name][inst_id]
+            curr_pose = curr_data[name]
             self.planet_plt.append(self.scene.mlab.points3d(
                 curr_pose[0],
                 curr_pose[1],
@@ -133,8 +137,6 @@ class PlanetarySystemModel(HasTraits):
                 resolution=100,
                 scale_factor=np.log10(pl_map[name]['Semi Major Axis']+1)*0.7)
             )
-
-            inst_id += 1
 
             orbit = np.array(orbit_data[name]).T
             self.scene.mlab.plot3d(
@@ -148,7 +150,7 @@ class PlanetarySystemModel(HasTraits):
         self.planets = planets
         # self.plot_potential()
 
-    @ observe('potential_threshold,n_longitudinal,n_size,scene.activated')
+    @ observe('potential_threshold,speed,scene.activated')
     def update_plot(self, event=None):
         for i, name in enumerate(pl_map):
             curr_pose = plts.update_and_fetch_pos()
@@ -159,14 +161,14 @@ class PlanetarySystemModel(HasTraits):
 
     # @ observe('potential_threshold,scene.activated')
     def plot_potential(self, event=None):
-        r, theta = np.mgrid[0:35:100j, 0:2*np.pi:100j]
-        x, y = r*np.cos(theta), r*np.sin(theta)
+        x, y = np.mgrid[-20:20:200j, -20:20:200j]
         self.grav_potential = np.zeros_like(x)
         for xi in range(len(x)):
             for yi in range(len(y)):
                 self.grav_potential[xi, yi] = compute_grav_pot(
                     np.array([x[xi, yi], y[xi, yi], 0]), plts, thresh=self.potential_threshold)
-        self.scene.mlab.contour_surf(
+        self.grav_potential /= np.max(self.grav_potential)
+        self.pot_plot = self.scene.mlab.surf(
             x, y, self.grav_potential, colormap='Spectral')
 
     def _toggle_bg_fired(self):
@@ -174,19 +176,19 @@ class PlanetarySystemModel(HasTraits):
         self.scene.scene.background = bgcolor
         self.is_dark = not self.is_dark
 
+    def _toggle_potential_fired(self):
+        self.plot_potential()
+
     def _play_fired(self):
         self.is_playing = not self.is_playing
-        global inst_id
-        start_inst_id = inst_id
-        while inst_id <= start_inst_id + 100:
-            for i, name in enumerate(pl_map):
-                curr_pose = orbit_data[name][inst_id]
-                self.planet_plt[i].mlab_source.trait_set(
-                    x=curr_pose[0],
-                    y=curr_pose[1],
-                    z=curr_pose[2])
-            time.sleep(0.1)
-            inst_id += 5
+        _ = [plts.update_and_fetch_pos() for i in range(self.speed)]
+        curr_data = plts.update_and_fetch_pos()
+        for i, name in enumerate(pl_map):
+            curr_pose = curr_data[name]
+            self.planet_plt[i].mlab_source.trait_set(
+                x=curr_pose[0],
+                y=curr_pose[1],
+                z=curr_pose[2])
 
     def _reset_fired(self):
         self.planets = planets_list
@@ -196,25 +198,26 @@ class PlanetarySystemModel(HasTraits):
         Group(
             Group(
                 Item(
-                    'scene',
-                    editor=SceneEditor(scene_class=MayaviScene),
+                    'scene', editor=SceneEditor(
+                        scene_class=MayaviScene),
                     height=250, width=300, show_label=False),
                 Group(
-                    '_', 'potential_threshold', 'n_longitudinal', 'n_size',
-                    'toggle_bg', 'play', show_border=True,
-                    label='Plotting Features'),
+                    '_', 'potential_threshold', 'speed',
+                    Group(
+                        'toggle_bg', 'toggle_potential', 'play',
+                        orientation='horizontal'),
+                    show_border=True, label='Plotting Features'),
                 orientation='vertical'),
             Group(
-                Item(
-                    'planets', show_label=False,
-                    editor=table_editor), 'reset',
-                show_border=True, label='Planet Data',),
+                Item('planets', show_label=False, editor=table_editor),
+                'reset', show_border=True, label='Planet Data',),
             orientation='horizontal'),
-        resizable=True,
-        kind='live', title='Project: Planetary Visualization')
+        resizable=True, kind='live', title='Project: Planetary Visualization')
 
 
 planet_system_model = PlanetarySystemModel(planets=planets_list)
 
 if __name__ == '__main__':
+    t0 = time.time()
     planet_system_model.configure_traits()
+    print(f"Time taken to initialize is {time.time()-t0} secs")
